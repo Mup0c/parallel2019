@@ -3,4 +3,4 @@ project(parallel2019)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(parallel2019 lab5.cpp)
+add_executable(parallel2019 lab6.cpp)

@@ -3,183 +3,127 @@
 #include <vector>
 #include <omp.h>
 
+
 int main(int argc, char *argv[]) {
     int N = atoi(argv[1]);
-    std::vector<int> a (N, 2);
-    std::vector<int> b (N, 2);
-    double start_time, end_time;
-    int prod, num, count, local_prod;
+    std::vector<std::vector<int> > a(N, std::vector<int>(N, 2));
+    std::vector<std::vector<int> > b(N, std::vector<int>(N, 2));
+    std::vector<std::vector<int> > prod(N, std::vector<int>(N, 0));
 
-//1
+    double start_time, end_time, one_threaded_run_time;
+    int num, count;
+
+
+
+
+for (int threads = 1; threads <= 17; threads++){
+    omp_set_num_threads(threads);
     start_time = omp_get_wtime();
-    prod = 0;
+#pragma omp parallel private (num)
+    {
+        count = omp_get_num_threads();
+        num = omp_get_thread_num();
+        if (num == 0)
+            printf("Всего нитей: %d\n", count);
+#pragma omp for
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < N; ++j) {
+                for (int k = 0; k < N; ++k) {
+                    prod[i][j] += a[i][k] * b[k][j];
+                }
+            }
+        }
+
+    }
+    /*
+    printf("\n");
     for (int i = 0; i < N; ++i) {
-        prod += a[i] * b[i];
-    }
-    end_time = omp_get_wtime();
-    printf("Время вычисления 1 поток: %lf\n", end_time-start_time);
-    printf("Произведение: %d\n", prod);
-
-
-
-//2
-    omp_set_num_threads(2);
-    prod = 0;
-    start_time = omp_get_wtime();
-#pragma omp parallel private(local_prod,i)
-    {
-        count = omp_get_num_threads();
-        num = omp_get_thread_num();
-        if (num == 0)
-            printf("Всего нитей: %d\n", count);
-        local_prod = 0;
-#pragma omp for
-        for (int i = 0; i < N; ++i) {
-            local_prod += a[i] * b[i];
-            //printf("%d, thread %d\n", i, num);
+        for (int j = 0; j < N; ++j) {
+            printf(" %d ", prod[i][j]);
         }
-#pragma omp atomic
-        prod += local_prod;
-    }
+        printf("\n");
+    } */
     end_time = omp_get_wtime();
-    printf("Время вычисления 2 поток: %lf\n", end_time - start_time);
-    printf("Произведение: %d\n", prod);
+    if (threads == 1) {
+        one_threaded_run_time = end_time - start_time;
+    }
+    double time = end_time - start_time;
+    printf("Время вычисления %d потоков: %lf\n", threads, time);
+    printf("Эффективность: %lf%%\n\n", threads, one_threaded_run_time/time*100);
+}
 
-//3
-    omp_set_num_threads(3);
-    prod = 0;
-    start_time = omp_get_wtime();
-#pragma omp parallel private(local_prod,i)
-    {
-        count = omp_get_num_threads();
-        num = omp_get_thread_num();
-        if (num == 0)
-            printf("Всего нитей: %d\n", count);
-        local_prod = 0;
+    for (int threads = 1; threads <= 17; threads++){
+        omp_set_num_threads(threads);
+        start_time = omp_get_wtime();
+#pragma omp parallel private (num)
+        {
+            count = omp_get_num_threads();
+            num = omp_get_thread_num();
+            if (num == 0)
+                printf("Всего нитей: %d\n", count);
 #pragma omp for
-        for (int i = 0; i < N; ++i) {
-            local_prod += a[i] * b[i];
-            //printf("%d, thread %d\n", i, num);
-        }
-#pragma omp atomic
-        prod += local_prod;
-    }
-    end_time = omp_get_wtime();
-    printf("Время вычисления 3 поток: %lf\n", end_time - start_time);
-    printf("Произведение: %d\n", prod);
+            for (int j = 0; j < N; ++j) {
+                for (int i = 0; i < N; ++i) {
+                    for (int k = 0; k < N; ++k) {
+                        prod[i][j] += a[i][k] * b[k][j];
+                    }
+                }
+            }
 
-//4
-    omp_set_num_threads(4);
-    prod = 0;
-    start_time = omp_get_wtime();
-#pragma omp parallel private(local_prod,i)
-    {
-        count = omp_get_num_threads();
-        num = omp_get_thread_num();
-        if (num == 0)
-            printf("Всего нитей: %d\n", count);
-        local_prod = 0;
-#pragma omp for
-        for (int i = 0; i < N; ++i) {
-            local_prod += a[i] * b[i];
-            //printf("%d, thread %d\n", i, num);
         }
-#pragma omp atomic
-        prod += local_prod;
-    }
-    end_time = omp_get_wtime();
-    printf("Время вычисления 4 поток: %lf\n", end_time - start_time);
-    printf("Произведение: %d\n", prod);
-//5
-    omp_set_num_threads(5);
-    prod = 0;
-    start_time = omp_get_wtime();
-#pragma omp parallel private(local_prod,i)
-    {
-        count = omp_get_num_threads();
-        num = omp_get_thread_num();
-        if (num == 0)
-            printf("Всего нитей: %d\n", count);
-        local_prod = 0;
-#pragma omp for
+        /*
+        printf("\n");
         for (int i = 0; i < N; ++i) {
-            local_prod += a[i] * b[i];
-            //printf("%d, thread %d\n", i, num);
+            for (int j = 0; j < N; ++j) {
+                printf(" %d ", prod[i][j]);
+            }
+            printf("\n");
+        } */
+        end_time = omp_get_wtime();
+        if (threads == 1) {
+            one_threaded_run_time = end_time - start_time;
         }
-#pragma omp atomic
-        prod += local_prod;
+        double time = end_time - start_time;
+        printf("Время вычисления %d потоков (поменяны строки и столбцы): %lf\n", threads, time);
+        printf("Эффективность: %lf%%\n\n", threads, one_threaded_run_time/time*100);
     }
-    end_time = omp_get_wtime();
-    printf("Время вычисления 5 поток: %lf\n", end_time - start_time);
-    printf("Произведение: %d\n", prod);
 
 
-//8
-    omp_set_num_threads(8);
-    prod = 0;
-    start_time = omp_get_wtime();
-#pragma omp parallel private(local_prod,i)
-    {
-        count = omp_get_num_threads();
-        num = omp_get_thread_num();
-        if (num == 0)
-            printf("Всего нитей: %d\n", count);
-        local_prod = 0;
+    for (int threads = 1; threads <= 17; threads++){
+        omp_set_num_threads(threads);
+        start_time = omp_get_wtime();
+#pragma omp parallel private (num)
+        {
+            count = omp_get_num_threads();
+            num = omp_get_thread_num();
+            if (num == 0)
+                printf("Всего нитей: %d\n", count);
 #pragma omp for
-        for (int i = 0; i < N; ++i) {
-            local_prod += a[i] * b[i];
-            //printf("%d, thread %d\n", i, num);
-        }
-#pragma omp atomic
-        prod += local_prod;
-    }
-    end_time = omp_get_wtime();
-    printf("Время вычисления 8 поток: %lf\n", end_time - start_time);
-    printf("Произведение: %d\n", prod);
+            for (int k = 0; k < N; ++k) {
+                for (int j = 0; j < N; ++j) {
+                    for (int i = 0; i < N; ++i) {
+                        prod[i][j] += a[i][k] * b[k][j];
+                    }
+                }
+            }
 
-//16
-    omp_set_num_threads(16);
-    prod = 0;
-    start_time = omp_get_wtime();
-#pragma omp parallel private(local_prod,i)
-    {
-        count = omp_get_num_threads();
-        num = omp_get_thread_num();
-        if (num == 0)
-            printf("Всего нитей: %d\n", count);
-        local_prod = 0;
-#pragma omp for
-        for (int i = 0; i < N; ++i) {
-            local_prod += a[i] * b[i];
-            //printf("%d, thread %d\n", i, num);
         }
-#pragma omp atomic
-        prod += local_prod;
+        /*
+        printf("\n");
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < N; ++j) {
+                printf(" %d ", prod[i][j]);
+            }
+            printf("\n");
+        } */
+        end_time = omp_get_wtime();
+        if (threads == 1) {
+            one_threaded_run_time = end_time - start_time;
+        }
+        double time = end_time - start_time;
+        printf("Время вычисления %d потоков (поменяны циклы): %lf\n", threads, time);
+        printf("Эффективность: %lf%%\n\n", threads, one_threaded_run_time/time*100);
     }
-    end_time = omp_get_wtime();
-    printf("Время вычисления 16 поток: %lf\n", end_time - start_time);
-    printf("Произведение: %d\n", prod);
 
-    //27
-    omp_set_num_threads(27);
-    prod = 0;
-    start_time = omp_get_wtime();
-#pragma omp parallel private(local_prod,i)
-    {
-        count = omp_get_num_threads();
-        num = omp_get_thread_num();
-        if (num == 0)
-            printf("Всего нитей: %d\n", count);
-        local_prod = 0;
-#pragma omp for
-        for (int i = 0; i < N; ++i) {
-            local_prod += a[i] * b[i];
-            //printf("%d, thread %d\n", i, num);
-        }
-#pragma omp atomic
-        prod += local_prod;
-    }
-    end_time = omp_get_wtime();
-    printf("Время вычисления 27 поток: %lf\n", end_time - start_time);
-    printf("Произведение: %d\n", prod);
+
 }
